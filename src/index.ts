@@ -5,6 +5,8 @@ import * as http from 'http';
 import * as cors from 'cors';
 import { connection } from './database';
 import { random } from './utils';
+import * as fs from 'fs';
+
 dotenv.config();
 
 const app = express();
@@ -22,7 +24,7 @@ app.use(
   '/:apikey',
   async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const conn = await connection();
-    const result = conn
+    const result = await conn
       .db()
       .collection('users')
       .findOne({ apikey: req.params.apikey });
@@ -38,6 +40,10 @@ userRoute.Router.options('*', cors(corsOptions));
 app.use('/:apikey/users', userRoute.Router);
 
 server.listen(port, async () => {
+  //Set up default folder
+  const defaultFolder = process.env.DEFAULT_FOLDER || 'DocBucket';
+  if (!fs.existsSync(defaultFolder)) fs.mkdirSync(defaultFolder);
+
   const conn = await connection();
   const result = await conn
     .db()

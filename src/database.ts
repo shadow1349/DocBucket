@@ -8,3 +8,5 @@ export const connection = function() {
 
   return client.connect(connectionstring);
 };
+
+export const ObjectId = mongodb.ObjectID;
