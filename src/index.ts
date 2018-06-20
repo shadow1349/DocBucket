@@ -37,7 +37,7 @@ app.use(
     const result = await conn
       .db()
       .collection('files')
-      .findOne({ path: url });
+      .findOne({ path: decodeURI(url) });
 
     if (!result)
       return res.status(200).json({ message: "We couldn't find the file you're looking for." });

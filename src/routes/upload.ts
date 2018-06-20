@@ -1,6 +1,8 @@
 import * as express from 'express';
 import * as path from 'path';
 import * as fs from 'fs';
+import { connection } from './../database';
+import { random } from './../utils';
 
 const router = express.Router();
 const defaultFolder = process.env.DEFAULT_FOLDER || 'DocBucket';
@@ -13,11 +15,25 @@ router.post('/', async (req: express.Request, res: express.Response) => {
   if (!fs.existsSync(path.join(staticFolder, req.query.path)))
     fs.mkdirSync(path.join(staticFolder, req.query.path));
 
+  const conn = await connection();
+
   if (req['files'].upload.length > 0) {
     req['files'].forEach(file => {
+      conn
+        .db()
+        .collection('files')
+        .save({ key: random, path: path.join(req.query.path, file.name), ispublic: false });
       file.mv(path.join(staticFolder, req.query.path, file.name));
     });
   } else {
+    conn
+      .db()
+      .collection('files')
+      .save({
+        key: random,
+        path: path.join(req.query.path, req['files'].upload.name),
+        ispublic: false
+      });
     req['files'].upload.mv(path.join(staticFolder, req.query.path, req['files'].upload.name));
   }
 
