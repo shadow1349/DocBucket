@@ -25,11 +25,27 @@ app.disable('x-powered-by');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.use('/buckets', (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const file = path.basename(req.url);
-  console.log(file);
-  return next();
-});
+app.use(
+  '/buckets',
+  async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+    const conn = await connection();
+
+    const url = req.url.includes('?') ? req.url.split('?')[0] : req.url;
+
+    const result = await conn
+      .db()
+      .collection('files')
+      .findOne({ path: url });
+
+    if (!result)
+      return res.status(200).json({ message: "We couldn't find the file you're looking for." });
+
+    if (!result.ispublic && req.query.key !== result.key)
+      return res.status(200).json({ message: 'Access Denied' });
+
+    return next();
+  }
+);
 app.use('/buckets', express.static(staticFolder));
 
 app.use(
