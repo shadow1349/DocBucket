@@ -7,6 +7,7 @@ import { connection } from './database';
 import { random } from './utils';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as fileUpload from 'express-fileupload';
 
 dotenv.config();
 const defaultFolder = process.env.DEFAULT_FOLDER || 'DocBucket';
@@ -21,6 +22,7 @@ const corsOptions: cors.CorsOptions = {
 
 app.use(cors(corsOptions));
 app.disable('x-powered-by');
+app.use(fileUpload());
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
@@ -52,10 +54,12 @@ app.use(
   '/:apikey',
   async (req: express.Request, res: express.Response, next: express.NextFunction) => {
     const conn = await connection();
+
     const result = await conn
       .db()
       .collection('users')
       .findOne({ apikey: req.params.apikey });
+
     if (!result)
       return res.status(401).json({ message: 'You are not authorized to access this route' });
     else return next();
