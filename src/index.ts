@@ -81,16 +81,30 @@ server.listen(port, async () => {
     fs.mkdirSync(path.join(staticFolder, 'default'));
 
   const conn = await connection();
-  const result = await conn
+
+  //Setup default user
+  const userResult = await conn
     .db()
     .collection('users')
     .findOne({ _id: 1 });
 
-  if (!result)
+  if (!userResult)
     conn
       .db()
       .collection('users')
       .save({ _id: 1, username: 'root', password: 'D0cBucket!', apikey: random });
+
+  //setup default bucket
+  const bucketResult = await conn
+    .db()
+    .collection('buckets')
+    .findOne({ _id: 1 });
+
+  if (!bucketResult)
+    conn
+      .db()
+      .collection('buckets')
+      .save({ _id: 1, name: 'default', path: '/default' });
 
   console.log(`DocBucker Server Started On Port ${port}`);
 });
